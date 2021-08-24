@@ -1,0 +1,10 @@
+name: 'Build MBox Plugin'
+description: 'Build MBox Plugin by GitHub Actions'
+author: 'RyanLeeLY'
+inputs:
+  token:
+    required: true
+    description: 'GitHub Token'
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
