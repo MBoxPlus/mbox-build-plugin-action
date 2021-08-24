@@ -3,7 +3,7 @@ import * as cp from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
 import {expect, test} from '@jest/globals'
-import {run, build} from '../src/func/run'
+import {build} from '../src/func/run'
 import {tmpdir} from 'os'
 
 const GITHUB_PAT = process.env.INPUT_TOKEN ?? process.env.GITHUB_TOKEN
@@ -18,7 +18,7 @@ test('build package', async () => {
     {cwd: tmp}
   )
   expect(await build(path.join(tmp, TEST_REPO), tmp)).toBe(
-    path.join(tmp, TEST_REPO, 'release')
+    path.join(tmp, 'workspace_root', 'release')
   )
 }, 3000000)
 

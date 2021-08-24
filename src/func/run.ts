@@ -3,6 +3,7 @@ import * as path from 'path'
 import {execute} from './execute'
 import {ActionInterface, isNullOrUndefined} from './input'
 import {insertGemSource} from './util'
+import * as fse from 'fs-extra'
 
 export async function run(action: ActionInterface): Promise<void> {
   await group('Check Inputs', async () => {
@@ -30,9 +31,9 @@ export async function run(action: ActionInterface): Promise<void> {
 export async function build(plugin_repo_path: string, root: string) {
   try {
     info('Check MBox Installed')
-    const exist = null
+    let exist = null
     try {
-      const exist = await execute(`command -v mbox`, root)
+      exist = await execute(`command -v mbox`, root)
     } catch (error) {}
     if (!exist) {
       info('Installing mbox')
@@ -49,8 +50,8 @@ export async function build(plugin_repo_path: string, root: string) {
   //   `git config --global url."https://${action.token}@github".insteadOf https://github`,
   //   root
   // )
-  const workspaceRoot = path.join(root, 'mbox_workspace')
-  await execute(`mkdir mbox_workspace`, root)
+  const workspaceRoot = path.join(root, 'workspace_root')
+  await execute(`mkdir workspace_root`, root)
   await execute(`mbox init plugin -v`, workspaceRoot)
   await execute(`mbox add ${plugin_repo_path} --mode=copy -v`, workspaceRoot)
 
@@ -60,7 +61,12 @@ export async function build(plugin_repo_path: string, root: string) {
 
   await execute(`mbox pod install -v`, workspaceRoot)
   await execute(`mbox plugin build --force -v --no-test`, workspaceRoot)
+  const releaseDir = path.join(workspaceRoot, 'release')
+  const buildDir = path.join(workspaceRoot, 'build')
 
-  const packagesDir = path.join(workspaceRoot, 'release')
-  return packagesDir
+  fse.copySync(releaseDir, buildDir, {recursive: true})
+
+  await execute(`mbox config core.dev-root ${workspaceRoot} -g`, workspaceRoot)
+
+  return releaseDir
 }
