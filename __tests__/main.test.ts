@@ -3,7 +3,7 @@ import * as cp from 'child_process'
 import * as path from 'path'
 import * as fs from 'fs'
 import {expect, test} from '@jest/globals'
-import {run, release, build} from '../src/func/run'
+import {run, build} from '../src/func/run'
 import {tmpdir} from 'os'
 
 const GITHUB_PAT = process.env.INPUT_TOKEN ?? process.env.GITHUB_TOKEN
