@@ -147,7 +147,7 @@ function run(action) {
             yield core_1.group('Build Plugin', () => __awaiter(this, void 0, void 0, function* () {
                 const root = path.resolve(path.join(action.workspace, '..'));
                 packagesDir = yield build(action.workspace, root);
-                core_1.setOutput('MBOX_BUILD_PATH', packagesDir);
+                core_1.setOutput('build-path', packagesDir);
             }));
         }
         catch (error) {

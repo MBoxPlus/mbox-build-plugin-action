@@ -5,6 +5,9 @@ inputs:
   token:
     required: true
     description: 'GitHub Token'
+outputs:
+  build-path:
+    description: 'Output build path'
 runs:
   using: 'node12'
   main: 'dist/index.js'
