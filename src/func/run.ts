@@ -54,6 +54,10 @@ export async function build(plugin_repo_path: string, root: string) {
   await execute(`mkdir workspace_root`, root)
   await execute(`mbox init plugin -v`, workspaceRoot)
   await execute(`mbox add ${plugin_repo_path} --mode=copy -v`, workspaceRoot)
+  await execute(
+    `mbox config container.allow_multiple_containers Bundler CocoaPods`,
+    workspaceRoot
+  )
 
   // Fix the issue that gem source missing
   const gemfile = path.join(workspaceRoot, 'Gemfile')
