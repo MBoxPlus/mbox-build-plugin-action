@@ -159,8 +159,8 @@ function run(action) {
 exports.run = run;
 function build(plugin_repo_path, root) {
     return __awaiter(this, void 0, void 0, function* () {
+        core_1.startGroup('Check MBox Installed');
         try {
-            core_1.info('Check MBox Installed');
             let exist = null;
             try {
                 exist = yield execute_1.execute(`command -v mbox`, root);
@@ -178,24 +178,36 @@ function build(plugin_repo_path, root) {
         catch (error) {
             throw new Error('Installation of MBox failed.');
         }
+        core_1.endGroup();
         // await execute(
         //   `git config --global url."https://${action.token}@github".insteadOf https://github`,
         //   root
         // )
         const workspaceRoot = path.join(root, 'workspace_root');
-        yield execute_1.execute(`mkdir workspace_root`, root);
-        yield execute_1.execute(`mbox init plugin -v`, workspaceRoot);
-        yield execute_1.execute(`mbox add ${plugin_repo_path} --mode=copy -v`, workspaceRoot);
-        yield execute_1.execute(`mbox config container.allow_multiple_containers Bundler CocoaPods`, workspaceRoot);
+        yield core_1.group('Create workspace', () => __awaiter(this, void 0, void 0, function* () {
+            yield execute_1.execute(`mkdir workspace_root`, root);
+            yield execute_1.execute(`mbox init plugin -v`, workspaceRoot);
+            yield execute_1.execute(`mbox add ${plugin_repo_path} --mode=copy -v`, workspaceRoot);
+            yield execute_1.execute(`mbox config container.allow_multiple_containers Bundler CocoaPods`, workspaceRoot);
+        }));
         // Fix the issue that gem source missing
-        const gemfile = path.join(workspaceRoot, 'Gemfile');
-        util_1.insertGemSource(gemfile);
-        yield execute_1.execute(`mbox pod install -v`, workspaceRoot);
-        yield execute_1.execute(`mbox plugin build --force -v --no-test`, workspaceRoot);
-        const releaseDir = path.join(workspaceRoot, 'release');
-        const buildDir = path.join(workspaceRoot, 'build');
-        fse.copySync(releaseDir, buildDir, { recursive: true });
-        yield execute_1.execute(`mbox config core.dev-root ${workspaceRoot} -g`, workspaceRoot);
+        yield core_1.group('Fix gem source', () => __awaiter(this, void 0, void 0, function* () {
+            const gemfile = path.join(workspaceRoot, 'Gemfile');
+            util_1.insertGemSource(gemfile);
+        }));
+        yield core_1.group('Pod install', () => __awaiter(this, void 0, void 0, function* () {
+            yield execute_1.execute(`mbox pod install -v`, workspaceRoot);
+        }));
+        let releaseDir = '';
+        yield core_1.group('Build', () => __awaiter(this, void 0, void 0, function* () {
+            yield execute_1.execute(`mbox plugin build --force -v --no-test`, workspaceRoot);
+            const releaseDir = path.join(workspaceRoot, 'release');
+            const buildDir = path.join(workspaceRoot, 'build');
+            fse.copySync(releaseDir, buildDir, { recursive: true });
+        }));
+        yield core_1.group(`Set mbox configuration`, () => __awaiter(this, void 0, void 0, function* () {
+            yield execute_1.execute(`mbox config core.dev-root ${workspaceRoot} -g`, workspaceRoot);
+        }));
         return releaseDir;
     });
 }

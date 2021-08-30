@@ -1,4 +1,4 @@
-import {group, info, setOutput} from '@actions/core'
+import {endGroup, group, info, setOutput, startGroup} from '@actions/core'
 import * as path from 'path'
 import {execute} from './execute'
 import {ActionInterface, isNullOrUndefined} from './input'
@@ -29,8 +29,8 @@ export async function run(action: ActionInterface): Promise<void> {
 }
 
 export async function build(plugin_repo_path: string, root: string) {
+  startGroup('Check MBox Installed')
   try {
-    info('Check MBox Installed')
     let exist = null
     try {
       exist = await execute(`command -v mbox`, root)
@@ -45,32 +45,48 @@ export async function build(plugin_repo_path: string, root: string) {
   } catch (error) {
     throw new Error('Installation of MBox failed.')
   }
+  endGroup()
 
   // await execute(
   //   `git config --global url."https://${action.token}@github".insteadOf https://github`,
   //   root
   // )
   const workspaceRoot = path.join(root, 'workspace_root')
-  await execute(`mkdir workspace_root`, root)
-  await execute(`mbox init plugin -v`, workspaceRoot)
-  await execute(`mbox add ${plugin_repo_path} --mode=copy -v`, workspaceRoot)
-  await execute(
-    `mbox config container.allow_multiple_containers Bundler CocoaPods`,
-    workspaceRoot
-  )
+  await group('Create workspace', async () => {
+    await execute(`mkdir workspace_root`, root)
+    await execute(`mbox init plugin -v`, workspaceRoot)
+    await execute(`mbox add ${plugin_repo_path} --mode=copy -v`, workspaceRoot)
+    await execute(
+      `mbox config container.allow_multiple_containers Bundler CocoaPods`,
+      workspaceRoot
+    )
+  })
 
   // Fix the issue that gem source missing
-  const gemfile = path.join(workspaceRoot, 'Gemfile')
-  insertGemSource(gemfile)
+  await group('Fix gem source', async () => {
+    const gemfile = path.join(workspaceRoot, 'Gemfile')
+    insertGemSource(gemfile)
+  })
 
-  await execute(`mbox pod install -v`, workspaceRoot)
-  await execute(`mbox plugin build --force -v --no-test`, workspaceRoot)
-  const releaseDir = path.join(workspaceRoot, 'release')
-  const buildDir = path.join(workspaceRoot, 'build')
+  await group('Pod install', async () => {
+    await execute(`mbox pod install -v`, workspaceRoot)
+  })
 
-  fse.copySync(releaseDir, buildDir, {recursive: true})
+  let releaseDir = ''
+  await group('Build', async () => {
+    await execute(`mbox plugin build --force -v --no-test`, workspaceRoot)
+    const releaseDir = path.join(workspaceRoot, 'release')
+    const buildDir = path.join(workspaceRoot, 'build')
 
-  await execute(`mbox config core.dev-root ${workspaceRoot} -g`, workspaceRoot)
+    fse.copySync(releaseDir, buildDir, {recursive: true})
+  })
+
+  await group(`Set mbox configuration`, async () => {
+    await execute(
+      `mbox config core.dev-root ${workspaceRoot} -g`,
+      workspaceRoot
+    )
+  })
 
   return releaseDir
 }
