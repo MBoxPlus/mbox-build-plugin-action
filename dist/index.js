@@ -186,6 +186,7 @@ function build(plugin_repo_path, root) {
         yield execute_1.execute(`mkdir workspace_root`, root);
         yield execute_1.execute(`mbox init plugin -v`, workspaceRoot);
         yield execute_1.execute(`mbox add ${plugin_repo_path} --mode=copy -v`, workspaceRoot);
+        yield execute_1.execute(`mbox config container.allow_multiple_containers Bundler CocoaPods`, workspaceRoot);
         // Fix the issue that gem source missing
         const gemfile = path.join(workspaceRoot, 'Gemfile');
         util_1.insertGemSource(gemfile);
