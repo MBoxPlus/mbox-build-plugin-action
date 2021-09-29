@@ -18,12 +18,10 @@ export async function run(action: ActionInterface): Promise<void> {
 
   try {
     let packagesDir: string = ''
-    await group('Build Plugin', async () => {
-      const root = path.resolve(path.join(action.workspace, '..'))
-      packagesDir = await build(action.workspace, root)
-      info(`setOutput: ${packagesDir}`)
-      setOutput('build-path', packagesDir)
-    })
+    const root = path.resolve(path.join(action.workspace, '..'))
+    packagesDir = await build(action.workspace, root)
+    info(`setOutput: ${packagesDir}`)
+    setOutput('build-path', packagesDir)
   } catch (error) {
     throw error
   }
@@ -76,7 +74,7 @@ export async function build(plugin_repo_path: string, root: string) {
   let releaseDir = ''
   await group('Build', async () => {
     await execute(`mbox plugin build --force -v --no-test`, workspaceRoot)
-    const releaseDir = path.join(workspaceRoot, 'release')
+    releaseDir = path.join(workspaceRoot, 'release')
     const buildDir = path.join(workspaceRoot, 'build')
 
     fse.copySync(releaseDir, buildDir, {recursive: true})

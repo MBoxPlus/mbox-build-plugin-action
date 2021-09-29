@@ -145,12 +145,10 @@ function run(action) {
         }));
         try {
             let packagesDir = '';
-            yield core_1.group('Build Plugin', () => __awaiter(this, void 0, void 0, function* () {
-                const root = path.resolve(path.join(action.workspace, '..'));
-                packagesDir = yield build(action.workspace, root);
-                core_1.info(`setOutput: ${packagesDir}`);
-                core_1.setOutput('build-path', packagesDir);
-            }));
+            const root = path.resolve(path.join(action.workspace, '..'));
+            packagesDir = yield build(action.workspace, root);
+            core_1.info(`setOutput: ${packagesDir}`);
+            core_1.setOutput('build-path', packagesDir);
         }
         catch (error) {
             throw error;
@@ -202,7 +200,7 @@ function build(plugin_repo_path, root) {
         let releaseDir = '';
         yield core_1.group('Build', () => __awaiter(this, void 0, void 0, function* () {
             yield execute_1.execute(`mbox plugin build --force -v --no-test`, workspaceRoot);
-            const releaseDir = path.join(workspaceRoot, 'release');
+            releaseDir = path.join(workspaceRoot, 'release');
             const buildDir = path.join(workspaceRoot, 'build');
             fse.copySync(releaseDir, buildDir, { recursive: true });
         }));
