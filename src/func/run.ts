@@ -21,6 +21,7 @@ export async function run(action: ActionInterface): Promise<void> {
     await group('Build Plugin', async () => {
       const root = path.resolve(path.join(action.workspace, '..'))
       packagesDir = await build(action.workspace, root)
+      info(`setOutput: ${packagesDir}`)
       setOutput('build-path', packagesDir)
     })
   } catch (error) {
